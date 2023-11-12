@@ -85,14 +85,15 @@ bool writeUsdFile(const std::string& filename,
     // Convert the vector of vertices to VtArray
     pxr::VtArray<pxr::GfVec3f> vtVertices(vertices.begin(), vertices.end());
 
-    // Create a points primitive on the stage
-    pxr::UsdGeomPoints points = pxr::UsdGeomPoints::Define(stage, pxr::SdfPath("/myPoints"));
-    points.GetPointsAttr().Set(vtVertices);
+    // // Create a points primitive on the stage
+    // pxr::UsdGeomPoints points = pxr::UsdGeomPoints::Define(stage, pxr::SdfPath("/myPoints"));
+    // points.GetPointsAttr().Set(vtVertices);
 
-    std::cout << "point primitive created." << std::endl;
+    // std::cout << "point primitive created." << std::endl;
 
     // Create a mesh primitive on the stage
     pxr::UsdGeomMesh mesh = pxr::UsdGeomMesh::Define(stage, pxr::SdfPath("/myMesh"));
+    mesh.GetPointsAttr().Set(vtVertices);
     mesh.GetFaceVertexCountsAttr().Set(vtFaceVertexCounts);
     mesh.GetFaceVertexIndicesAttr().Set(vtFaceVertexIndices);
 
@@ -111,7 +112,7 @@ int main() {
     //std::cout << "Hello World" << std::endl;
 
     std::string plyFilePath = "../data/f16.ply";
-    std::string usdaFilePath = "../data/f16.usdc";
+    std::string usdaFilePath = "../data/f16.usda";
 
     std::vector<pxr::GfVec3f> vertices;
     //std::vector<std::vector<int>> faces;
