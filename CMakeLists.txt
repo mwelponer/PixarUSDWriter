@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
-project(PlyToUSD)
+project(PixarUSDWriter)
 
 # set the build variant Degub/Release
 set(CMAKE_BUILD_TYPE "Debug")
@@ -44,7 +44,6 @@ target_link_libraries(${PROJECT_NAME}
     usd_sdf
     usd_tf
     usd_vt
-    #${USD_USD} # usd
     # Add other USD libraries if needed (e.g., usdGeom, usdShade, etc.)
 )
 

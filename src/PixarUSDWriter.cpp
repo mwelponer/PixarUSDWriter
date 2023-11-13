@@ -83,7 +83,7 @@ void PixarUSDWriter::ImportObj(std::ifstream& ifs){
             int index;
             int numVerticesInFace = 0;
             while (iss >> index) {
-                //std::cout << "vertexIndex: " << vertexIndex << std::endl;
+                //std::cout << "index: " << index << std::endl;
                 vtFaceVertexIndices.push_back(index - 1);
                 numVerticesInFace++;
             }
@@ -96,21 +96,22 @@ void PixarUSDWriter::ImportObj(std::ifstream& ifs){
 
 void PixarUSDWriter::ImportMesh(const std::string& filePath){
     std::string fileExtension;
-    // check the type of file by extension
-    size_t dotPos = filePath.find_last_of('.');
 
     // Check if a dot was found and it is not at the beginning or end of the filename
+    size_t dotPos = filePath.find_last_of('.');
     if (dotPos != std::string::npos && dotPos > 0 && dotPos < filePath.length() - 1){
         fileExtension = filePath.substr(dotPos + 1);
         //std::cout << "file extension: " << fileExtension << std::endl;
     }else return;
 
+    // open the file
     std::ifstream ifs(filePath);
     if (!ifs.is_open()){
         std::cerr << "Error opening file: " << filePath << std::endl;
         return;
     }
 
+    // check the file type by extension
     if (fileExtension == "ply"){
         ImportPly(ifs);
     }else if (fileExtension == "obj"){
@@ -122,7 +123,6 @@ void PixarUSDWriter::ImportMesh(const std::string& filePath){
     else{
         std::cerr << "File extension ."<< fileExtension 
             << " not supported. No mesh was imported." << std::endl;
-        return;
     }
 
     // close the file 
@@ -133,8 +133,7 @@ void PixarUSDWriter::ImportMesh(const std::string& filePath){
 void PixarUSDWriter::AddMesh(const std::string& meshName) {
 
     // check if any mesh was imported 
-    if (vertices.empty())
-        return;
+    if (vertices.empty()) return;
 
     // Create an Xform (transform) for the mesh
     pxr::UsdGeomXform xform = 
@@ -156,6 +155,11 @@ void PixarUSDWriter::AddMesh(const std::string& meshName) {
     pxr::UsdAttribute faceVertexIndicesAttr = mesh.GetFaceVertexIndicesAttr();
     faceVertexIndicesAttr.Set(vtFaceVertexIndices);
 
+    // clear the data vectors
+    vertices.clear();
+    vtFaceVertexCounts.clear();
+    vtFaceVertexIndices.clear();
+
     // Set normals if available
     if (!normals.empty()){
         pxr::UsdAttribute normalsAttr = mesh.GetNormalsAttr();
@@ -165,11 +169,6 @@ void PixarUSDWriter::AddMesh(const std::string& meshName) {
 
         normals.clear();
     }
-
-    // clear the data vectors
-    vertices.clear();
-    vtFaceVertexCounts.clear();
-    vtFaceVertexIndices.clear();
 }
 
 // Add a layer to the stage
