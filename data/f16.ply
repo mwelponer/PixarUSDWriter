@@ -1,4 +1,5 @@
 ply
+comment ply file downloaded from https://people.sc.fsu.edu/~jburkardt/data/ply/ply.html
 format ascii 1.0
 element vertex 2537
 property float32 x

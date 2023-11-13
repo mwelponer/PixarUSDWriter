@@ -3,85 +3,28 @@
 #include <vector>
 #include "PixarUSDWriter.h"
 
-// Function to read a .ply file and store vertices and faces
-bool readPlyFile(const std::string& filename,
-                 std::vector<pxr::GfVec3f>& vertices,
-                 pxr::VtArray<int>& vtFaceVertexCounts, 
-                 pxr::VtArray<int>& vtFaceVertexIndices) {
-
-   std::ifstream plyFile(filename);
-    if (!plyFile.is_open()) {
-        std::cerr << "Error opening file: " << filename << std::endl;
-        return false;
-    }
-
-    std::string line;
-    int numVertices, vertexCount = 0;
-    bool readingVertices = false;
-    bool readingFaces = false;
-
-    while (std::getline(plyFile, line)) {
-        //std::cout << "line: " << line << std::endl;
-        std::istringstream iss(line);
-
-        if (readingVertices) {
-            pxr::GfVec3f vertex;
-            iss >> vertex[0] >> vertex[1] >> vertex[2];
-            vertices.push_back(vertex);
-
-            if (++vertexCount == numVertices){
-                readingVertices = false;
-                readingFaces = true;
-            }
-
-        } else if (readingFaces) {
-            int numVerticesInFace;
-
-            iss >> numVerticesInFace;
-            vtFaceVertexCounts.push_back(numVerticesInFace);
-
-            int vertexIndex;
-            for (int i = 0; i < numVerticesInFace; ++i) {
-                iss >> vertexIndex;
-                vtFaceVertexIndices.push_back(vertexIndex);
-            }
-
-        } else if (line.find("end_header") != std::string::npos) {
-            readingVertices = true;
-
-        } else if (line.find("element vertex") != std::string::npos) {
-            iss >> line >> line >> numVertices;
-            vertices.reserve(numVertices);
-
-        } else if (line.find("element face") != std::string::npos) {
-            int numFaces;
-            iss >> line >> line >> numFaces;
-        }
-    }
-
-    return true;
-}
-
-
 int main() {
-    std::string plyFilePath = "../data/f16.ply";
-    std::string USDFilePath = "../data/out.usda";
-
-    std::vector<pxr::GfVec3f> vertices;
-    pxr::VtArray<int> vtFaceVertexCounts;
-    pxr::VtArray<int> vtFaceVertexIndices;
-
-    readPlyFile(plyFilePath, vertices, vtFaceVertexCounts, vtFaceVertexIndices);
+    std::string ply1_FilePath = "../data/cube.ply";
+    std::string ply2_FilePath = "../data/f16.ply";
+    std::string obj_FilePath = "../data/teapot.obj";
+    std::string usda_FilePath = "../data/box.usda";
 
     try {
         // Create PixarUSDWriter instance
-        PixarUSDWriter usdWriter(USDFilePath);
+        PixarUSDWriter usdWriter("../data/out.usda");
 
-        // Add a mesh to the stage
-        usdWriter.AddMesh("mesh", vertices, vtFaceVertexCounts, vtFaceVertexIndices);
+        // import ply1 from an external file
+        usdWriter.ImportMesh(obj_FilePath);
+        // Add the mesh to the stage
+        usdWriter.AddMesh("mesh1");
+
+        // import ply2 from an external file
+        usdWriter.ImportMesh(ply2_FilePath);
+        // Add the mesh to the stage
+        usdWriter.AddMesh("mesh2");
 
         // Add a layer
-        usdWriter.AddLayer("../data/cube.usda");
+        // usdWriter.AddLayer(usda_FilePath);
 
         // Save the stage to disk
         usdWriter.SaveStage();
