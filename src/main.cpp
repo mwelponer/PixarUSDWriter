@@ -1,12 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include <pxr/usd/usd/stage.h>
-#include <pxr/usd/usdGeom/points.h>
-#include <pxr/usd/usdGeom/mesh.h>
-#include <pxr/base/gf/vec3f.h>
-#include <pxr/base/vt/array.h>
-
+#include "PixarUSDWriter.h"
 
 // Function to read a .ply file and store vertices and faces
 bool readPlyFile(const std::string& filename,
@@ -67,83 +62,33 @@ bool readPlyFile(const std::string& filename,
     return true;
 }
 
-bool writeUsdFile(const std::string& filename, 
-                 std::vector<pxr::GfVec3f>& vertices,
-                 pxr::VtArray<int>& vtFaceVertexCounts, 
-                 pxr::VtArray<int>& vtFaceVertexIndices){
-
-   // Create a new USD stage
-    pxr::UsdStageRefPtr stage = pxr::UsdStage::CreateNew(filename);
-
-    if (!stage) {
-        std::cerr << "Failed to create USD stage!" << std::endl;
-        return false;
-    } else {
-        std::cout << "stage created." << std::endl;
-    }
-
-    // Convert the vector of vertices to VtArray
-    pxr::VtArray<pxr::GfVec3f> vtVertices(vertices.begin(), vertices.end());
-
-    // // Create a points primitive on the stage
-    // pxr::UsdGeomPoints points = pxr::UsdGeomPoints::Define(stage, pxr::SdfPath("/myPoints"));
-    // points.GetPointsAttr().Set(vtVertices);
-
-    // std::cout << "point primitive created." << std::endl;
-
-    // Create a mesh primitive on the stage
-    pxr::UsdGeomMesh mesh = pxr::UsdGeomMesh::Define(stage, pxr::SdfPath("/myMesh"));
-    mesh.GetPointsAttr().Set(vtVertices);
-    mesh.GetFaceVertexCountsAttr().Set(vtFaceVertexCounts);
-    mesh.GetFaceVertexIndicesAttr().Set(vtFaceVertexIndices);
-
-    std::cout << "mesh primitive created." << std::endl;
-
-    // Save the stage to the .usda file
-    if (!stage->GetRootLayer()->Save()) {
-        std::cerr << "Failed to save USD stage to file!" << std::endl;
-        return false;
-    }
-
-    return true;
-}
 
 int main() {
-    //std::cout << "Hello World" << std::endl;
-
     std::string plyFilePath = "../data/f16.ply";
-    std::string usdaFilePath = "../data/f16.usda";
+    std::string USDFilePath = "../data/out.usda";
 
     std::vector<pxr::GfVec3f> vertices;
-    //std::vector<std::vector<int>> faces;
     pxr::VtArray<int> vtFaceVertexCounts;
     pxr::VtArray<int> vtFaceVertexIndices;
 
     readPlyFile(plyFilePath, vertices, vtFaceVertexCounts, vtFaceVertexIndices);
 
-    // if (readPlyFile(plyFilePath, vertices, vtFaceVertexCounts, vtFaceVertexIndices)) {
-    //     // Print vertices
-    //     std::cout << "Vertices:" << std::endl;
-    //     for (const auto& vertex : vertices) {
-    //         std::cout << "  vertex " << vertex << std::endl;
-    //     }
-    //     // Print faces
-    //     std::cout << "Faces:" << std::endl;
-    //     int begin = 0;
-    //     for (int vtCount : vtFaceVertexCounts) {
-    //         std::cout << "  face (" << vtCount << ") ";
+    try {
+        // Create PixarUSDWriter instance
+        PixarUSDWriter usdWriter(USDFilePath);
 
-    //         int end = begin + vtCount;
-    //         for (int v=begin; v < end; v++) {
-    //             std::cout << vtFaceVertexIndices[v] << " ";
-    //             begin++;
-    //         }
-    //         std::cout << std::endl;
-    //     }
-    // }
+        // Add a mesh to the stage
+        usdWriter.AddMesh("mesh", vertices, vtFaceVertexCounts, vtFaceVertexIndices);
 
-    if (writeUsdFile(usdaFilePath, vertices, vtFaceVertexCounts, vtFaceVertexIndices)){
-        std::cout << "Conversion successful. Output saved to: " << usdaFilePath << std::endl;
+        // Add a layer
+        usdWriter.AddLayer("../data/cube.usda");
+
+        // Save the stage to disk
+        usdWriter.SaveStage();
+
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        return 1;
     }
 
     return 0;

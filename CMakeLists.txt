@@ -16,6 +16,7 @@ set(USD_INCLUDE_DIRECTORY /opt/local/USD/include)
 # Add your source files
 set(SOURCES
     src/main.cpp
+    src/PixarUSDWriter.cpp
     # Add other source files if any
 )
 
