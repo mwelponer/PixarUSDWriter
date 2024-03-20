@@ -4,6 +4,7 @@
 #include "PixarUSDWriter.h"
 
 int main() {
+
     std::string ply1_FilePath = "../data/cube.ply";
     std::string ply2_FilePath = "../data/f16.ply";
     std::string obj_FilePath = "../data/teapot.obj";
